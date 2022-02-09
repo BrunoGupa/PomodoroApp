@@ -8,47 +8,56 @@ MARRON = "#4F091D"
 RED = "#DD4A48"
 
 FONT_NAME = "Courier"
-WORK_MIN = 0.01 #25
-SHORT_BREAK_MIN = 0.01#5
-LONG_BREAK_MIN = 0.01#25
+WORK_MIN = 25
+SHORT_BREAK_MIN = 5
+LONG_BREAK_MIN = 25
 
 reps = 0
-pomodoros = 0
+cycles = 0
+timer = None
 
 
 # ---------------------------- TIMER RESET ------------------------------- #
 
-# ---------------------------- TIMER MECHANISM ------------------------------- # 
+def reset_timer():
+    global cycles, timer, reps
+    window.after_cancel(timer)
+    label_time.config(text="TIMER", fg=SEPIA)
+    canvas.itemconfig(timer_text, text="00:00")
+    label_check.config(text="")
+    reps = 0
+    cycles = 0
+
+
+# ---------------------------- TIMER MECHANISM ------------------------------- #
+
 def start_timer():
     global reps
-    global pomodoros
+    global cycles
 
     work_sec = WORK_MIN * 60
     short_break_sec = SHORT_BREAK_MIN * 60
     long_break_sec = LONG_BREAK_MIN * 60
 
     if reps % 2 == 0:
-        print("work sec", reps)
         label_time.config(text="WORK", fg=MARRON)
         time_func(work_sec)
     else:
         if reps == 7:
-            print("long break", reps)
             label_time.config(text="BREAK", fg=RED)
             time_func(long_break_sec)
         else:
-            print("short break", reps)
             label_time.config(text="BREAK", fg=SEPIA)
             time_func(short_break_sec)
-    reps += 1
-    if reps == 8:
-        pomodoros += 1
-        checks = "✔" * pomodoros
+
+    if reps % 2 == 1:
+        cycles += 1
+        checks = "✔" * cycles
         label_check.config(text=checks)
-        reps = 0
-        if pomodoros == 4:
-            pomodoros = 0
+        if cycles == 4:
+            cycles = 0
             label_check.config(text="")
+    reps += 1
 
 
 # ---------------------------- COUNTDOWN MECHANISM ------------------------------- #
@@ -60,10 +69,10 @@ def time_func(count):
 
     canvas.itemconfig(timer_text, text=f"{count_min}:{count_sec}")
     if count > 0:
-        window.after(1000, time_func, count - 1)  # after time in ms, calls a function
+        global timer
+        timer = window.after(1000, time_func, count - 1)  # after time in ms, calls a function
     else:
         start_timer()
-        print("i am here")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -91,19 +100,10 @@ button_start = Button(text="Start", command=start_timer, fg=MARRON, font=(FONT_N
                       highlightthickness=0)
 button_start.grid(row=2, column=0)
 
-
 # reset
-def reset():
-    print("reset")
-
-
 # calls action() when pressed
-button_reset = Button(text="Reset", command=reset, fg=MARRON, font=(FONT_NAME, 13, "bold"), bg=BLUE,
+button_reset = Button(text="Reset", command=reset_timer, fg=MARRON, font=(FONT_NAME, 13, "bold"), bg=BLUE,
                       highlightthickness=0)
 button_reset.grid(row=2, column=2)
-
-
-
-
 
 window.mainloop()
